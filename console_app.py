@@ -38,7 +38,7 @@ def console_loop():
         elif choice == '2':
             # Загрузить модель и сделать прогноз на 12 месяцев
             try:
-                model_name = input("Введите точное имя сохранённой модели (например, 'test-model_1679999999.keras'): ").strip()
+                model_name = input("Введите точное имя сохранённой модели (например, 'moscow-10year_1742048377.keras'): ").strip()
                 if not model_name:
                     print("❌ Ошибка: не указано имя модели.")
                     continue

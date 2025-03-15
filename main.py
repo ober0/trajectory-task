@@ -77,12 +77,17 @@ def process_and_train_model(filename: str, input_model_name: str):
         # Сохраняем финальный прогноз в Excel (с датой в названии)
         now_str = datetime.now().strftime("%Y%m%d_%H%M")
         output_filename = f"forecast_output_{now_str}.xlsx"
+        output_filename_txt = f"forecast_output_{now_str}.txt"
         output_dir = "files/output/"
         os.makedirs(output_dir, exist_ok=True)
         forecast_path = os.path.join(output_dir, output_filename)
+        forecast_path_txt = os.path.join(output_dir, output_filename_txt)
         forecast_df.to_excel(forecast_path, index=False)
-        print(f"✅ Итоговый прогноз сохранён в:", forecast_path)
+        print(f"✅ Итоговый прогноз (excel) сохранён в:", forecast_path)
 
+        with open(forecast_path_txt, "w", encoding="utf-8") as f:
+            f.write(forecast_df.to_string(index=False))
+        print(f"✅ Итоговый прогноз (.txt) сохранён в:", forecast_path_txt)
         return forecast_path, model_name
 
     except Exception as e:
@@ -148,14 +153,20 @@ def load_and_forecast(model_name: str):
         forecast_plot = wf.plot_forecast(future_df, model_name + "_loaded")
         print("ℹ️ Построен график прогноза:", forecast_plot)
 
-        # Сохраним итоговый forecast в Excel (с датой)
+        # Сохраним итоговый forecast в
         now_str = datetime.now().strftime("%Y%m%d_%H%M")
         output_filename = f"forecast_{model_name}_{now_str}.xlsx"
+        output_filename_txt = f"forecast_{model_name}_{now_str}.txt"
         output_dir = "files/output/"
         os.makedirs(output_dir, exist_ok=True)
         forecast_file = os.path.join(output_dir, output_filename)
+        forecast_file_txt = os.path.join(output_dir, output_filename_txt)
         future_df.to_excel(forecast_file, index=False)
-        print("✅ Прогноз сохранён в:", forecast_file)
+        print("✅ Прогноз (excel) сохранён в:", forecast_file)
+
+        with open(forecast_file_txt, "w", encoding="utf-8") as f:
+            f.write(future_df.to_string(index=False))
+        print("✅ Прогноз (.txt) сохранён в:", forecast_file_txt)
 
         return forecast_file
 
