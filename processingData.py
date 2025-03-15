@@ -36,3 +36,9 @@ class ProcessingData:
 
         # Сохраняем данные в базу данных
         monthly_avg_temp.to_sql('monthly_weather_data', con=self.engine, if_exists='replace', index=False)
+
+    def get_weather_data(self) -> pd.DataFrame:
+        """Получаем данные о температуре из базы данных."""
+        query = "SELECT year, month, temp FROM monthly_weather_data"
+        df = pd.read_sql(query, con=self.engine)
+        return df
