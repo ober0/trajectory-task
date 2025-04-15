@@ -1,5 +1,6 @@
 
 from main import process_and_train_model, load_and_forecast
+from datetime import datetime
 
 def console_loop():
     while True:
@@ -23,6 +24,7 @@ def console_loop():
                     print("❌ Ошибка: не указано название модели.")
                     continue
 
+
                 forecast_path, model_name = process_and_train_model(input_file, model_base_name)
                 if forecast_path and model_name:
                     print("✅ Модель обучена! Прогноз сохранён в:", forecast_path)
@@ -43,7 +45,16 @@ def console_loop():
                     print("❌ Ошибка: не указано имя модели.")
                     continue
 
-                forecast_file = load_and_forecast(model_name)
+                year = input(
+                    f"Введите год на который хотите получить прогноз (до {datetime.now().year + 10}) \n Если хотите получить прогноз на все года - отправьте пустую строку: ")
+                if (year != ''):
+                    if (int(year) > datetime.now().year + 10):
+                        print(f"❌ Год не можент быть больше {datetime.now().year + 10}")
+                        break
+                    if (int(year) < datetime.now().year):
+                        print(f"❌ Год не может быть меньше {datetime.now().year}")
+
+                forecast_file = load_and_forecast(model_name, year)
                 if forecast_file:
                     print("✅ Прогноз успешно сформирован и сохранён в:", forecast_file)
                 else:

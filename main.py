@@ -95,20 +95,11 @@ def process_and_train_model(filename: str, input_model_name: str):
         return None, None
 
 
-def load_and_forecast(model_name: str):
-    """
-    Загружаем модель из БД
-
-    В итоге 2 графика:
-      - test_forecast_*
-      - forecast_*
-
-    """
+def load_and_forecast(model_name: str, year: str | int):
     try:
         print(f"ℹ️ Пытаемся загрузить модель '{model_name}' из БД...")
         p = ProcessingData()
 
-        # Ищем запись о модели
         with p.engine.begin() as conn:
             query = text("SELECT model_name, last_date FROM models WHERE model_name = :m")
             row = conn.execute(query, {"m": model_name}).fetchone()
@@ -139,21 +130,39 @@ def load_and_forecast(model_name: str):
             if len(train_part) >= wf.window_size:
                 last_window_train = train_part[-wf.window_size:]
                 test_preds = wf.forecast(last_window_train, horizon=12)
-                # Будем сравнивать test_preds и test_part
                 test_plot = wf.plot_test_forecast(test_part, test_preds, model_name + "_loaded")
                 print("ℹ️ Построен тест-график:", test_plot)
-            else:
-                print("❗ Недостаточно данных для тест-прогноза (train_part < window_size). Пропускаем тест.")
         else:
             print("❗ Недостаточно данных (менее 24) — пропускаем тестовый прогноз.")
 
-        print("ℹ️ Делаем финальный прогноз на 12 месяцев вперёд...")
+        print("ℹ️ Делаем финальный прогноз...")
+
+        horizon = 120
+        if year:
+            try:
+                target_year = int(year)
+                current_year = datetime.now().year
+                horizon = max((target_year - current_year + 1) * 12, 1)
+                print(f"ℹ️ Год задан ({target_year}) — прогнозируем на {horizon // 12} лет вперёд.")
+            except ValueError:
+                print(f"⚠️ Невалидный год '{year}' — используем прогноз на 10 лет.")
+
         last_window = series[-wf.window_size:]
-        future_df = wf.forecast_with_dates(last_window, last_dt, horizon=12)
+        future_df = wf.forecast_with_dates(last_window, last_dt, horizon=horizon)
+
+        if year:
+            try:
+                year = int(year)
+                if 'year' in future_df.columns:
+                    future_df = future_df[future_df['year'] == year]
+                else:
+                    print("⚠️ В прогнозе отсутствует колонка 'year' — пропускаем фильтрацию по году.")
+            except ValueError:
+                print(f"⚠️ Невалидный год '{year}' — пропускаем фильтрацию.")
+
         forecast_plot = wf.plot_forecast(future_df, model_name + "_loaded")
         print("ℹ️ Построен график прогноза:", forecast_plot)
 
-        # Сохраним итоговый forecast в
         now_str = datetime.now().strftime("%Y%m%d_%H%M")
         output_filename = f"forecast_{model_name}_{now_str}.xlsx"
         output_filename_txt = f"forecast_{model_name}_{now_str}.txt"

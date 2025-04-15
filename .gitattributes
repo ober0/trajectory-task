@@ -1,1 +1,1 @@
-*.exe filter=lfs diff=lfs merge=lfs
+*.exe -text filter=lfs diff=lfs merge=lfs
